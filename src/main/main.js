@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, desktopCapturer, screen, dialog, shell, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, desktopCapturer, screen, dialog, shell, globalShortcut, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -21,8 +21,6 @@ try {
 } catch (err) {
   console.warn('FFmpeg static path setup warning:', err.message);
 }
-
-const { app, BrowserWindow, ipcMain, desktopCapturer, screen, dialog, shell, globalShortcut, Menu } = require('electron');
 
 // Disable default Electron menu bar
 Menu.setApplicationMenu(null);
