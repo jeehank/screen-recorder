@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Screen Record HD</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -24,7 +21,7 @@
       </div>
 
       <div class="header-right">
-        <div class="user-avatar" title="User Profile">
+        <div class="user-avatar" title="Account">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
@@ -40,9 +37,7 @@
         <button id="card-mode" class="control-card" title="Select Record Area">
           <div class="card-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <!-- Framing Corners -->
               <path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" stroke-linecap="round"/>
-              <!-- Video Cam Inside -->
               <rect x="7" y="9" width="7" height="6" rx="1.2" fill="currentColor"/>
               <polygon points="14 11 17 9 17 15 14 13" fill="currentColor"/>
             </svg>
@@ -52,45 +47,6 @@
             <svg class="caret" viewBox="0 0 10 6" fill="currentColor"><polygon points="0 0 10 0 5 6"/></svg>
           </div>
         </button>
-
-        <!-- Dropdown Popout Menu for Mode -->
-        <div id="dropdown-mode" class="custom-dropdown popout-mode">
-          <div class="popout-header">
-            <span>Select Record Area</span>
-            <span class="popout-close" id="btn-close-mode-popout">&times;</span>
-          </div>
-
-          <div class="dropdown-item active" data-mode="fullscreen">
-            <div class="item-icon-box">🖥️</div>
-            <div class="item-text">
-              <span class="item-title">Full Screen</span>
-              <span class="item-sub">Record entire display</span>
-            </div>
-            <span class="item-badge">Full</span>
-          </div>
-
-          <div class="dropdown-item" data-mode="region">
-            <div class="item-icon-box">📐</div>
-            <div class="item-text">
-              <span class="item-title">Custom Region</span>
-              <span class="item-sub" id="dropdown-region-desc">Draw area on screen</span>
-            </div>
-            <button class="btn-popout-action" id="btn-draw-area-trigger">Draw Area</button>
-          </div>
-
-          <div class="dropdown-item" data-mode="window">
-            <div class="item-icon-box">🪟</div>
-            <div class="item-text">
-              <span class="item-title">App Window</span>
-              <span class="item-sub">Record a specific application</span>
-            </div>
-          </div>
-
-          <!-- Window list if in window mode -->
-          <div id="window-select-container" style="display: none; padding: 4px 6px;">
-            <select id="select-window-source" class="dropdown-select"></select>
-          </div>
-        </div>
       </div>
 
       <!-- Card 2: Audio (Speaker / Mic) -->
@@ -119,28 +75,6 @@
             <svg class="caret" viewBox="0 0 10 6" fill="currentColor"><polygon points="0 0 10 0 5 6"/></svg>
           </div>
         </button>
-
-        <!-- Dropdown Menu for Audio -->
-        <div id="dropdown-audio" class="custom-dropdown">
-          <div class="dropdown-toggle-row">
-            <span>System Audio (Speaker)</span>
-            <label class="switch">
-              <input type="checkbox" id="check-system-audio" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="dropdown-toggle-row">
-            <span>Microphone</span>
-            <label class="switch">
-              <input type="checkbox" id="check-mic" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="dropdown-select-row">
-            <label>Mic Source:</label>
-            <select id="select-mic-source" class="dropdown-select"></select>
-          </div>
-        </div>
       </div>
 
       <!-- Card 3: Format (MP4 / Quality) -->
@@ -163,30 +97,6 @@
             <svg class="caret" viewBox="0 0 10 6" fill="currentColor"><polygon points="0 0 10 0 5 6"/></svg>
           </div>
         </button>
-
-        <!-- Dropdown Menu for Format -->
-        <div id="dropdown-format" class="custom-dropdown">
-          <div class="dropdown-option-group">
-            <label>Format:</label>
-            <span class="badge-mp4">MP4 (H.264 / AAC)</span>
-          </div>
-          <div class="dropdown-option-group">
-            <label>Frame Rate:</label>
-            <select id="select-fps" class="dropdown-select">
-              <option value="60" selected>60 FPS (Smooth)</option>
-              <option value="30">30 FPS (Standard)</option>
-              <option value="24">24 FPS (Cinematic)</option>
-            </select>
-          </div>
-          <div class="dropdown-option-group">
-            <label>Quality / Bitrate:</label>
-            <select id="select-quality" class="dropdown-select">
-              <option value="12000000">12 Mbps (High)</option>
-              <option value="8000000" selected>8 Mbps (Standard)</option>
-              <option value="4000000">4 Mbps (Compact)</option>
-            </select>
-          </div>
-        </div>
       </div>
 
       <!-- Vertical Sliders for Speaker & Mic -->
@@ -277,11 +187,149 @@
         <span class="status-pulse-dot"></span>
         <span id="footer-timer">00:00:00</span>
         <div class="footer-actions">
-          <button id="btn-footer-pause" class="footer-ctrl-btn" title="Pause / Resume (Ctrl+Shift+P)">⏸</button>
-          <button id="btn-footer-stop" class="footer-ctrl-btn stop" title="Stop & Save">⏹</button>
+          <button id="btn-footer-pause" class="footer-ctrl-btn" title="Pause / Resume (Ctrl+Shift+P)">Pause</button>
+          <button id="btn-footer-stop" class="footer-ctrl-btn stop" title="Stop & Save">Stop</button>
         </div>
       </div>
     </footer>
+
+    <!-- POPOUT MODAL 1: Recording Mode Selector (Fully Visible Center Popout) -->
+    <div id="popout-mode-overlay" class="popout-overlay-backdrop">
+      <div class="popout-dialog-card">
+        <div class="popout-dialog-header">
+          <h4>Select Recording Mode</h4>
+          <button class="popout-dialog-close" id="btn-close-mode-dialog">&times;</button>
+        </div>
+
+        <div class="mode-options-grid">
+          <!-- Full Screen Option -->
+          <div class="mode-choice-card active" data-mode="fullscreen">
+            <div class="choice-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </div>
+            <div class="choice-details">
+              <span class="choice-title">Full Screen</span>
+              <span class="choice-subtitle">Capture your complete monitor</span>
+            </div>
+            <span class="choice-badge">Selected</span>
+          </div>
+
+          <!-- Custom Region Option -->
+          <div class="mode-choice-card" data-mode="region">
+            <div class="choice-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" stroke-linecap="round"/>
+                <rect x="8" y="8" width="8" height="8" rx="1"/>
+              </svg>
+            </div>
+            <div class="choice-details">
+              <span class="choice-title">Custom Region</span>
+              <span class="choice-subtitle" id="popout-region-desc">Select and crop a part of the screen</span>
+            </div>
+            <button class="choice-btn" id="btn-popout-draw-action">Draw Area</button>
+          </div>
+
+          <!-- App Window Option -->
+          <div class="mode-choice-card" data-mode="window">
+            <div class="choice-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <line x1="3" y1="9" x2="21" y2="9"/>
+                <circle cx="6" cy="6" r="1" fill="currentColor"/>
+                <circle cx="9" cy="6" r="1" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="choice-details">
+              <span class="choice-title">Application Window</span>
+              <span class="choice-subtitle">Capture an individual active app</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="window-picker-box" class="window-picker-box" style="display: none;">
+          <label>Target Application:</label>
+          <select id="select-window-picker" class="dropdown-select"></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- POPOUT MODAL 2: Audio Configuration (Fully Visible Popout) -->
+    <div id="popout-audio-overlay" class="popout-overlay-backdrop">
+      <div class="popout-dialog-card">
+        <div class="popout-dialog-header">
+          <h4>Audio Configuration</h4>
+          <button class="popout-dialog-close" id="btn-close-audio-dialog">&times;</button>
+        </div>
+
+        <div class="audio-options-list">
+          <div class="audio-toggle-item">
+            <div class="toggle-info">
+              <span class="title">System Sound (Speaker)</span>
+              <span class="desc">Record sounds playing on your computer</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="check-system-audio" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="audio-toggle-item">
+            <div class="toggle-info">
+              <span class="title">Microphone</span>
+              <span class="desc">Record your voice through microphone</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="check-mic" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="device-select-box">
+            <label>Microphone Device:</label>
+            <select id="select-mic-source" class="dropdown-select"></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POPOUT MODAL 3: Format Configuration (Fully Visible Popout) -->
+    <div id="popout-format-overlay" class="popout-overlay-backdrop">
+      <div class="popout-dialog-card">
+        <div class="popout-dialog-header">
+          <h4>Format & Quality</h4>
+          <button class="popout-dialog-close" id="btn-close-format-dialog">&times;</button>
+        </div>
+
+        <div class="format-options-list">
+          <div class="format-field-row">
+            <label>Container Format:</label>
+            <span class="format-tag">MP4 Video (H.264 / AAC)</span>
+          </div>
+
+          <div class="format-field-row">
+            <label>Frame Rate:</label>
+            <select id="select-fps" class="dropdown-select">
+              <option value="60" selected>60 FPS (Smooth)</option>
+              <option value="30">30 FPS (Standard)</option>
+              <option value="24">24 FPS (Cinematic)</option>
+            </select>
+          </div>
+
+          <div class="format-field-row">
+            <label>Bitrate Quality:</label>
+            <select id="select-quality" class="dropdown-select">
+              <option value="12000000">12 Mbps (High Quality)</option>
+              <option value="8000000" selected>8 Mbps (Standard)</option>
+              <option value="4000000">4 Mbps (Compact Size)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Settings Modal -->
     <div id="modal-settings" class="simple-modal">
