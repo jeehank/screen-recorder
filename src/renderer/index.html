@@ -53,28 +53,42 @@
           </div>
         </button>
 
-        <!-- Dropdown Menu for Mode -->
-        <div id="dropdown-mode" class="custom-dropdown">
+        <!-- Dropdown Popout Menu for Mode -->
+        <div id="dropdown-mode" class="custom-dropdown popout-mode">
+          <div class="popout-header">
+            <span>Select Record Area</span>
+            <span class="popout-close" id="btn-close-mode-popout">&times;</span>
+          </div>
+
           <div class="dropdown-item active" data-mode="fullscreen">
-            <span class="item-icon">🖥️</span>
+            <div class="item-icon-box">🖥️</div>
             <div class="item-text">
               <span class="item-title">Full Screen</span>
               <span class="item-sub">Record entire display</span>
             </div>
+            <span class="item-badge">Full</span>
           </div>
+
           <div class="dropdown-item" data-mode="region">
-            <span class="item-icon">📐</span>
+            <div class="item-icon-box">📐</div>
             <div class="item-text">
               <span class="item-title">Custom Region</span>
-              <span class="item-sub" id="dropdown-region-desc">Draw / drag screen area</span>
+              <span class="item-sub" id="dropdown-region-desc">Draw area on screen</span>
             </div>
+            <button class="btn-popout-action" id="btn-draw-area-trigger">Draw Area</button>
           </div>
+
           <div class="dropdown-item" data-mode="window">
-            <span class="item-icon">🪟</span>
+            <div class="item-icon-box">🪟</div>
             <div class="item-text">
               <span class="item-title">App Window</span>
-              <span class="item-sub">Select specific window</span>
+              <span class="item-sub">Record a specific application</span>
             </div>
+          </div>
+
+          <!-- Window list if in window mode -->
+          <div id="window-select-container" style="display: none; padding: 4px 6px;">
+            <select id="select-window-source" class="dropdown-select"></select>
           </div>
         </div>
       </div>

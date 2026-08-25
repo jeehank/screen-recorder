@@ -27,12 +27,12 @@ let regionWindow = null;
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
-    width: 820,
-    height: 340,
-    minWidth: 760,
-    minHeight: 300,
+    width: 860,
+    height: 390,
+    minWidth: 780,
+    minHeight: 360,
     title: 'Screen Record HD',
-    backgroundColor: '#f3f6fa',
+    backgroundColor: '#f4f7fb',
     frame: true,
     resizable: true,
     webPreferences: {

@@ -107,6 +107,31 @@ document.addEventListener('click', (e) => {
   }
 });
 
+const btnCloseModePopout = document.getElementById('btn-close-mode-popout');
+const btnDrawAreaTrigger = document.getElementById('btn-draw-area-trigger');
+const windowSelectContainer = document.getElementById('window-select-container');
+const selectWindowSource = document.getElementById('select-window-source');
+
+if (btnCloseModePopout) {
+  btnCloseModePopout.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownMode.classList.remove('show');
+  });
+}
+
+if (btnDrawAreaTrigger) {
+  btnDrawAreaTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    currentMode = 'region';
+    labelMode.textContent = 'Custom';
+    dropdownMode.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+    const regItem = dropdownMode.querySelector('[data-mode="region"]');
+    if (regItem) regItem.classList.add('active');
+    closeAllDropdowns();
+    openRegionSelector();
+  });
+}
+
 // Mode Selection Handlers
 dropdownMode.querySelectorAll('.dropdown-item').forEach(item => {
   item.addEventListener('click', () => {
@@ -118,17 +143,37 @@ dropdownMode.querySelectorAll('.dropdown-item').forEach(item => {
     if (mode === 'fullscreen') {
       labelMode.textContent = 'Full';
       engine.clearRegion();
+      windowSelectContainer.style.display = 'none';
+      closeAllDropdowns();
     } else if (mode === 'region') {
       labelMode.textContent = 'Custom';
+      windowSelectContainer.style.display = 'none';
+      closeAllDropdowns();
       openRegionSelector();
     } else if (mode === 'window') {
       labelMode.textContent = 'Window';
       engine.clearRegion();
+      windowSelectContainer.style.display = 'block';
+      populateWindowSources();
     }
-
-    closeAllDropdowns();
   });
 });
+
+async function populateWindowSources() {
+  if (window.electronAPI) {
+    try {
+      currentSources = await window.electronAPI.getSources();
+      const windows = currentSources.filter(s => s.id.startsWith('window:'));
+      selectWindowSource.innerHTML = '';
+      windows.forEach(w => {
+        const opt = document.createElement('option');
+        opt.value = w.id;
+        opt.textContent = w.name;
+        selectWindowSource.appendChild(opt);
+      });
+    } catch (e) {}
+  }
+}
 
 function openRegionSelector() {
   if (window.electronAPI) {
