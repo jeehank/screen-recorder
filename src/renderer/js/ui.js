@@ -1,472 +1,482 @@
-// Initialize Engine
+// Initialize Recorder Engine
 const engine = new ScreenRecorderEngine();
 
 // UI Elements
-const statusPill = document.getElementById('status-pill');
-const statusText = document.getElementById('status-text');
-const timerText = document.getElementById('recording-timer');
-const recDot = document.getElementById('rec-dot');
+const cardMode = document.getElementById('card-mode');
+const dropdownMode = document.getElementById('dropdown-mode');
+const labelMode = document.getElementById('label-mode');
+const dropdownRegionDesc = document.getElementById('dropdown-region-desc');
 
-const btnRecord = document.getElementById('btn-record');
-const btnRecordText = document.getElementById('btn-record-text');
-const btnPause = document.getElementById('btn-pause');
-const btnPauseText = document.getElementById('btn-pause-text');
-const iconPause = document.getElementById('icon-pause');
-const iconResume = document.getElementById('icon-resume');
-const btnStop = document.getElementById('btn-stop');
+const cardAudio = document.getElementById('card-audio');
+const dropdownAudio = document.getElementById('dropdown-audio');
+const labelAudio = document.getElementById('label-audio');
+const checkSystemAudio = document.getElementById('check-system-audio');
+const checkMic = document.getElementById('check-mic');
+const selectMicSource = document.getElementById('select-mic-source');
+const cardLedMeter = document.getElementById('card-led-meter');
 
-const modeFullscreen = document.getElementById('mode-fullscreen');
-const modeRegion = document.getElementById('mode-region');
-const modeWindow = document.getElementById('mode-window');
-const regionDesc = document.getElementById('region-desc');
+const cardFormat = document.getElementById('card-format');
+const dropdownFormat = document.getElementById('dropdown-format');
+const labelFormat = document.getElementById('label-format');
+const selectFps = document.getElementById('select-fps');
+const selectQuality = document.getElementById('select-quality');
 
-const sourceBar = document.getElementById('source-bar');
-const sourceLabel = document.getElementById('source-label');
-const sourceSelect = document.getElementById('source-select');
-const btnSelectRegionOverlay = document.getElementById('btn-select-region-overlay');
+const sliderSpeaker = document.getElementById('slider-speaker');
+const sliderMic = document.getElementById('slider-mic');
+const btnToggleSpeakerMute = document.getElementById('btn-toggle-speaker-mute');
+const btnToggleMicMute = document.getElementById('btn-toggle-mic-mute');
 
-const previewVideo = document.getElementById('preview-video');
-const viewportEmpty = document.getElementById('viewport-empty');
-const previewResolutionText = document.getElementById('preview-resolution-text');
-const previewFpsText = document.getElementById('preview-fps-text');
+const btnMainRecord = document.getElementById('btn-main-record');
+const startBtnText = document.getElementById('start-btn-text');
 
-// Audio & Settings
-const toggleMic = document.getElementById('toggle-mic');
-const selectMicDevice = document.getElementById('select-mic-device');
-const vuBarFill = document.getElementById('vu-bar-fill');
-const vuDbText = document.getElementById('vu-db-text');
-const toggleSystemAudio = document.getElementById('toggle-system-audio');
-const selectFramerate = document.getElementById('select-framerate');
-const selectBitrate = document.getElementById('select-bitrate');
+const infoFolderPath = document.getElementById('info-folder-path');
+const btnBrowseFolder = document.getElementById('btn-browse-folder');
 
-// Modal Elements
-const modalExport = document.getElementById('modal-export');
-const modalVideoPlayer = document.getElementById('modal-video-player');
-const metaDuration = document.getElementById('meta-duration');
-const metaResolution = document.getElementById('meta-resolution');
-const btnSaveMp4 = document.getElementById('btn-save-mp4');
-const btnOpenFolder = document.getElementById('btn-open-folder');
-const btnDiscard = document.getElementById('btn-discard');
-const btnCloseModal = document.getElementById('btn-close-modal');
-const conversionBox = document.getElementById('conversion-box');
-const conversionPercent = document.getElementById('conversion-percent');
-const conversionBar = document.getElementById('conversion-bar');
+const footerStatus = document.getElementById('footer-status');
+const footerTimer = document.getElementById('footer-timer');
+const btnFooterPause = document.getElementById('btn-footer-pause');
+const btnFooterStop = document.getElementById('btn-footer-stop');
+
+// Modals
+const modalSettings = document.getElementById('modal-settings');
+const btnCloseSettings = document.getElementById('btn-close-settings');
+const btnNavSetting = document.getElementById('btn-nav-setting');
+const btnNavMore = document.getElementById('btn-nav-more');
+const settingFolderInput = document.getElementById('setting-folder-input');
+const btnChangeFolderModal = document.getElementById('btn-change-folder-modal');
+
+const modalMedia = document.getElementById('modal-media');
+const btnCloseMedia = document.getElementById('btn-close-media');
+const btnNavMedia = document.getElementById('btn-nav-media');
+const mediaVideoPlayer = document.getElementById('media-video-player');
+const btnSaveAsMp4 = document.getElementById('btn-save-as-mp4');
+const btnShowFolder = document.getElementById('btn-show-folder');
 
 let currentMode = 'fullscreen'; // 'fullscreen' | 'region' | 'window'
+let currentDisplayId = null;
+let currentWindowId = null;
 let currentSources = [];
-let previewStream = null;
+let defaultOutputDir = '';
 let currentRecordingResult = null;
-let savedMp4Path = null;
+let lastSavedFilePath = null;
 
-// Format milliseconds to HH:MM:SS
+// LED segments
+const ledSegments = Array.from(cardLedMeter.querySelectorAll('.led-seg'));
+
+// Format Milliseconds
 function formatTime(ms) {
-  const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  const totalSec = Math.floor(ms / 1000);
+  const hrs = Math.floor(totalSec / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  const secs = totalSec % 60;
+  return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
-// Update UI State
-function updateRecordingState(state) {
-  if (state === 'recording') {
-    statusPill.className = 'status-pill recording';
-    statusText.textContent = 'RECORDING';
-    recDot.className = 'timer-dot active';
-
-    btnRecord.disabled = true;
-    btnRecord.style.display = 'none';
-
-    btnPause.disabled = false;
-    btnPauseText.textContent = 'Pause';
-    iconPause.style.display = 'block';
-    iconResume.style.display = 'none';
-
-    btnStop.disabled = false;
-    disableConfigControls(true);
-  } else if (state === 'paused') {
-    statusPill.className = 'status-pill paused';
-    statusText.textContent = 'PAUSED';
-    recDot.className = 'timer-dot paused';
-
-    btnPause.disabled = false;
-    btnPauseText.textContent = 'Resume';
-    iconPause.style.display = 'none';
-    iconResume.style.display = 'block';
-  } else {
-    // idle
-    statusPill.className = 'status-pill ready';
-    statusText.textContent = 'READY';
-    recDot.className = 'timer-dot';
-    timerText.textContent = '00:00:00';
-
-    btnRecord.disabled = false;
-    btnRecord.style.display = 'inline-flex';
-    btnRecordText.textContent = 'Start Recording';
-
-    btnPause.disabled = true;
-    btnPauseText.textContent = 'Pause';
-    iconPause.style.display = 'block';
-    iconResume.style.display = 'none';
-
-    btnStop.disabled = true;
-    disableConfigControls(false);
-  }
+// Close all open dropdowns
+function closeAllDropdowns() {
+  dropdownMode.classList.remove('show');
+  dropdownAudio.classList.remove('show');
+  dropdownFormat.classList.remove('show');
 }
 
-function disableConfigControls(disabled) {
-  modeFullscreen.disabled = disabled;
-  modeRegion.disabled = disabled;
-  modeWindow.disabled = disabled;
-  sourceSelect.disabled = disabled;
-  btnSelectRegionOverlay.disabled = disabled;
-  toggleMic.disabled = disabled;
-  selectMicDevice.disabled = disabled;
-  toggleSystemAudio.disabled = disabled;
-  selectFramerate.disabled = disabled;
-  selectBitrate.disabled = disabled;
-}
-
-// Populate Microphones
-async function loadMicrophones() {
-  try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const audioInputs = devices.filter(d => d.kind === 'audioinput');
-
-    selectMicDevice.innerHTML = '';
-    const defaultOpt = document.createElement('option');
-    defaultOpt.value = 'default';
-    defaultOpt.textContent = 'Default Microphone';
-    selectMicDevice.appendChild(defaultOpt);
-
-    audioInputs.forEach((device, idx) => {
-      const opt = document.createElement('option');
-      opt.value = device.deviceId;
-      opt.textContent = device.label || `Microphone ${idx + 1}`;
-      selectMicDevice.appendChild(opt);
-    });
-  } catch (err) {
-    console.warn('Unable to list audio devices:', err);
-  }
-}
-
-// Populate Screen and Window sources
-async function refreshSources() {
-  if (!window.electronAPI) return;
-
-  try {
-    currentSources = await window.electronAPI.getSources();
-    sourceSelect.innerHTML = '';
-
-    let filtered = [];
-    if (currentMode === 'fullscreen' || currentMode === 'region') {
-      filtered = currentSources.filter(s => s.id.startsWith('screen:'));
-      sourceLabel.textContent = 'Select Display:';
-    } else {
-      filtered = currentSources.filter(s => s.id.startsWith('window:'));
-      sourceLabel.textContent = 'Select App Window:';
-    }
-
-    if (filtered.length === 0) {
-      filtered = currentSources;
-    }
-
-    filtered.forEach(source => {
-      const opt = document.createElement('option');
-      opt.value = source.id;
-      opt.textContent = source.name;
-      sourceSelect.appendChild(opt);
-    });
-
-    if (filtered.length > 0) {
-      updateLivePreview(filtered[0].id);
-    }
-  } catch (err) {
-    console.error('Failed to load screen sources:', err);
-  }
-}
-
-// Live Viewport Preview
-async function updateLivePreview(sourceId) {
-  if (!sourceId) return;
-
-  try {
-    if (previewStream) {
-      previewStream.getTracks().forEach(t => t.stop());
-    }
-
-    previewStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        mandatory: {
-          chromeMediaSource: 'desktop',
-          chromeMediaSourceId: sourceId,
-          minFrameRate: 30,
-          maxFrameRate: 60
-        }
-      },
-      audio: false
-    });
-
-    previewVideo.srcObject = previewStream;
-    viewportEmpty.style.display = 'none';
-    previewVideo.style.display = 'block';
-
-    previewVideo.onloadedmetadata = () => {
-      previewResolutionText.textContent = `${previewVideo.videoWidth} × ${previewVideo.videoHeight}`;
-      previewFpsText.textContent = `${selectFramerate.value} FPS`;
-    };
-  } catch (err) {
-    console.warn('Preview stream error:', err);
-    viewportEmpty.style.display = 'flex';
-    previewVideo.style.display = 'none';
-  }
-}
-
-// Switch Capture Modes
-function setMode(mode) {
-  currentMode = mode;
-  [modeFullscreen, modeRegion, modeWindow].forEach(btn => btn.classList.remove('active'));
-
-  if (mode === 'fullscreen') {
-    modeFullscreen.classList.add('active');
-    btnSelectRegionOverlay.style.display = 'none';
-    engine.clearRegion();
-    regionDesc.textContent = 'Select screen area';
-  } else if (mode === 'region') {
-    modeRegion.classList.add('active');
-    btnSelectRegionOverlay.style.display = 'inline-flex';
-  } else if (mode === 'window') {
-    modeWindow.classList.add('active');
-    btnSelectRegionOverlay.style.display = 'none';
-    engine.clearRegion();
-  }
-
-  refreshSources();
-}
-
-modeFullscreen.addEventListener('click', () => setMode('fullscreen'));
-modeRegion.addEventListener('click', () => {
-  setMode('region');
-  openRegionOverlay();
+// Dropdown Toggles
+cardMode.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isOpen = dropdownMode.classList.contains('show');
+  closeAllDropdowns();
+  if (!isOpen) dropdownMode.classList.add('show');
 });
-modeWindow.addEventListener('click', () => setMode('window'));
 
-// Open Region Selector Overlay
-function openRegionOverlay() {
+cardAudio.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isOpen = dropdownAudio.classList.contains('show');
+  closeAllDropdowns();
+  if (!isOpen) dropdownAudio.classList.add('show');
+});
+
+cardFormat.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isOpen = dropdownFormat.classList.contains('show');
+  closeAllDropdowns();
+  if (!isOpen) dropdownFormat.classList.add('show');
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.control-card-wrapper')) {
+    closeAllDropdowns();
+  }
+});
+
+// Mode Selection Handlers
+dropdownMode.querySelectorAll('.dropdown-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const mode = item.dataset.mode;
+    dropdownMode.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+
+    currentMode = mode;
+    if (mode === 'fullscreen') {
+      labelMode.textContent = 'Full';
+      engine.clearRegion();
+    } else if (mode === 'region') {
+      labelMode.textContent = 'Custom';
+      openRegionSelector();
+    } else if (mode === 'window') {
+      labelMode.textContent = 'Window';
+      engine.clearRegion();
+    }
+
+    closeAllDropdowns();
+  });
+});
+
+function openRegionSelector() {
   if (window.electronAPI) {
-    const selectedSource = sourceSelect.value;
-    window.electronAPI.openRegionSelector(selectedSource);
+    const screenSource = currentSources.find(s => s.id.startsWith('screen:'));
+    window.electronAPI.openRegionSelector(screenSource ? screenSource.id : null);
   }
 }
 
-btnSelectRegionOverlay.addEventListener('click', openRegionOverlay);
-
-// Handle Selected Region
 if (window.electronAPI) {
   window.electronAPI.onRegionSelected((region) => {
     if (region) {
       engine.setRegion(region);
-      regionDesc.textContent = `${region.width} × ${region.height} px`;
-      previewResolutionText.textContent = `${region.width} × ${region.height} (Region)`;
+      labelMode.textContent = 'Custom';
+      dropdownRegionDesc.textContent = `${region.width} × ${region.height} px`;
     }
-  });
-
-  window.electronAPI.onConversionProgress((percent) => {
-    conversionBox.style.display = 'block';
-    conversionPercent.textContent = `${percent}%`;
-    conversionBar.style.width = `${percent}%`;
   });
 
   window.electronAPI.onShortcutRecord(() => {
-    if (engine.state === 'idle') {
-      startRecording();
-    } else {
-      stopRecording();
-    }
+    handleStartOrStop();
   });
 
   window.electronAPI.onShortcutPause(() => {
-    if (engine.state === 'recording') {
-      engine.pause();
-    } else if (engine.state === 'paused') {
-      engine.resume();
-    }
+    handlePauseResume();
   });
 }
 
-sourceSelect.addEventListener('change', () => {
-  updateLivePreview(sourceSelect.value);
+// Audio Handlers
+checkSystemAudio.addEventListener('change', () => {
+  engine.setOptions({ includeSystemAudio: checkSystemAudio.checked });
+  updateAudioCardLabel();
 });
 
-selectFramerate.addEventListener('change', () => {
-  previewFpsText.textContent = `${selectFramerate.value} FPS`;
-  engine.setOptions({ fps: selectFramerate.value });
+checkMic.addEventListener('change', () => {
+  engine.setOptions({ includeMic: checkMic.checked });
+  updateAudioCardLabel();
 });
 
-selectBitrate.addEventListener('change', () => {
-  engine.setOptions({ videoBitrate: selectBitrate.value });
+function updateAudioCardLabel() {
+  if (checkSystemAudio.checked && checkMic.checked) {
+    labelAudio.textContent = 'Speaker';
+  } else if (checkSystemAudio.checked) {
+    labelAudio.textContent = 'Speaker';
+  } else if (checkMic.checked) {
+    labelAudio.textContent = 'Mic';
+  } else {
+    labelAudio.textContent = 'Mute';
+  }
+}
+
+selectMicSource.addEventListener('change', () => {
+  engine.setOptions({ micDeviceId: selectMicSource.value });
 });
 
-toggleMic.addEventListener('change', () => {
-  engine.setOptions({ includeMic: toggleMic.checked });
-  document.getElementById('mic-settings-body').style.opacity = toggleMic.checked ? '1' : '0.4';
+// Format Handlers
+selectFps.addEventListener('change', () => {
+  engine.setOptions({ fps: selectFps.value });
 });
 
-selectMicDevice.addEventListener('change', () => {
-  engine.setOptions({ micDeviceId: selectMicDevice.value });
+selectQuality.addEventListener('change', () => {
+  engine.setOptions({ videoBitrate: selectQuality.value });
 });
 
-toggleSystemAudio.addEventListener('change', () => {
-  engine.setOptions({ includeSystemAudio: toggleSystemAudio.checked });
+// Slider Mute Toggles
+let prevSpeakerVal = 100;
+btnToggleSpeakerMute.addEventListener('click', () => {
+  if (sliderSpeaker.value > 0) {
+    prevSpeakerVal = sliderSpeaker.value;
+    sliderSpeaker.value = 0;
+    checkSystemAudio.checked = false;
+  } else {
+    sliderSpeaker.value = prevSpeakerVal || 100;
+    checkSystemAudio.checked = true;
+  }
+  engine.setOptions({ includeSystemAudio: checkSystemAudio.checked });
+  updateAudioCardLabel();
 });
 
-// Engine callbacks
+let prevMicVal = 85;
+btnToggleMicMute.addEventListener('click', () => {
+  if (sliderMic.value > 0) {
+    prevMicVal = sliderMic.value;
+    sliderMic.value = 0;
+    checkMic.checked = false;
+  } else {
+    sliderMic.value = prevMicVal || 85;
+    checkMic.checked = true;
+  }
+  engine.setOptions({ includeMic: checkMic.checked });
+  updateAudioCardLabel();
+});
+
+sliderSpeaker.addEventListener('input', () => {
+  checkSystemAudio.checked = sliderSpeaker.value > 0;
+  engine.setOptions({ includeSystemAudio: checkSystemAudio.checked });
+  updateAudioCardLabel();
+});
+
+sliderMic.addEventListener('input', () => {
+  checkMic.checked = sliderMic.value > 0;
+  engine.setOptions({ includeMic: checkMic.checked });
+  updateAudioCardLabel();
+});
+
+// LED VU Meter Update Callback
+engine.onAudioLevel = (level) => {
+  const activeCount = Math.round((level / 100) * ledSegments.length);
+  ledSegments.forEach((seg, idx) => {
+    seg.className = 'led-seg';
+    if (idx < activeCount) {
+      if (idx >= ledSegments.length - 1) {
+        seg.classList.add('on-red');
+      } else if (idx >= ledSegments.length - 3) {
+        seg.classList.add('on-yellow');
+      } else {
+        seg.classList.add('on-green');
+      }
+    }
+  });
+};
+
+// Engine Time & State Sync
 engine.onTick = (ms) => {
-  timerText.textContent = formatTime(ms);
+  const formatted = formatTime(ms);
+  footerTimer.textContent = formatted;
+  if (engine.state === 'recording') {
+    startBtnText.textContent = formatted.slice(3); // Shows mm:ss in circle
+  }
 };
 
 engine.onStateChange = (state) => {
-  updateRecordingState(state);
+  if (state === 'recording') {
+    btnMainRecord.className = 'start-circle-btn recording';
+    footerStatus.style.display = 'flex';
+    btnFooterPause.textContent = '⏸';
+  } else if (state === 'paused') {
+    btnMainRecord.className = 'start-circle-btn paused';
+    startBtnText.textContent = 'Pause';
+    btnFooterPause.textContent = '▶';
+  } else {
+    btnMainRecord.className = 'start-circle-btn';
+    startBtnText.textContent = 'Start';
+    footerStatus.style.display = 'none';
+    footerTimer.textContent = '00:00:00';
+    ledSegments.forEach(s => s.className = 'led-seg');
+  }
 };
 
-engine.onAudioLevel = (level) => {
-  vuBarFill.style.width = `${level}%`;
-  vuDbText.textContent = level > 0 ? `-${Math.round((100 - level) * 0.4)} dB` : '-inf dB';
-};
-
-// Start Recording
-async function startRecording() {
-  const selectedSource = sourceSelect.value;
-  if (!selectedSource) {
-    alert('Please select a screen or window source first.');
-    return;
-  }
-
-  // Stop preview to free up stream resources
-  if (previewStream) {
-    previewStream.getTracks().forEach(t => t.stop());
-    previewStream = null;
-  }
-
-  engine.setOptions({
-    fps: selectFramerate.value,
-    videoBitrate: selectBitrate.value,
-    includeMic: toggleMic.checked,
-    includeSystemAudio: toggleSystemAudio.checked,
-    micDeviceId: selectMicDevice.value
-  });
-
-  try {
-    await engine.start(selectedSource);
-  } catch (err) {
-    console.error('Failed to start recording:', err);
-    alert('Recording failed to start: ' + err.message);
-    updateRecordingState('idle');
-    refreshSources();
+// Start or Stop Action
+async function handleStartOrStop() {
+  if (engine.state === 'idle') {
+    await startRecording();
+  } else {
+    await stopRecording();
   }
 }
 
-// Pause / Resume
-btnPause.addEventListener('click', () => {
+function handlePauseResume() {
   if (engine.state === 'recording') {
     engine.pause();
   } else if (engine.state === 'paused') {
     engine.resume();
   }
-});
+}
 
-// Stop Recording
+btnMainRecord.addEventListener('click', handleStartOrStop);
+btnFooterPause.addEventListener('click', handlePauseResume);
+btnFooterStop.addEventListener('click', stopRecording);
+
+// Start Recording Flow
+async function startRecording() {
+  try {
+    let source = currentSources.find(s => s.id.startsWith('screen:'));
+    if (currentMode === 'window') {
+      source = currentSources.find(s => s.id.startsWith('window:')) || source;
+    }
+
+    if (!source && currentSources.length > 0) {
+      source = currentSources[0];
+    }
+
+    if (!source) {
+      alert('No display source found.');
+      return;
+    }
+
+    engine.setOptions({
+      fps: selectFps.value,
+      videoBitrate: selectQuality.value,
+      includeMic: checkMic.checked && sliderMic.value > 0,
+      includeSystemAudio: checkSystemAudio.checked && sliderSpeaker.value > 0,
+      micDeviceId: selectMicSource.value
+    });
+
+    await engine.start(source.id);
+  } catch (err) {
+    console.error('Error starting recording:', err);
+    alert('Recording failed: ' + err.message);
+  }
+}
+
+// Stop Recording Flow
 async function stopRecording() {
   try {
     const result = await engine.stop();
     if (result) {
       currentRecordingResult = result;
-      showExportModal(result);
+      openMediaModal(result);
     }
   } catch (err) {
-    console.error('Failed to stop recording:', err);
-  } finally {
-    refreshSources();
+    console.error('Error stopping recording:', err);
   }
 }
 
-btnRecord.addEventListener('click', startRecording);
-btnStop.addEventListener('click', stopRecording);
-
-// Export Modal Handling
-function showExportModal(result) {
-  const videoUrl = URL.createObjectURL(result.blob);
-  modalVideoPlayer.src = videoUrl;
-  metaDuration.textContent = formatTime(result.duration);
-  metaResolution.textContent = result.resolution;
-
-  conversionBox.style.display = 'none';
-  btnSaveMp4.style.display = 'inline-flex';
-  btnOpenFolder.style.display = 'none';
-  modalExport.classList.add('open');
+// Media Modal Handlers
+function openMediaModal(result) {
+  const url = URL.createObjectURL(result.blob);
+  mediaVideoPlayer.src = url;
+  modalMedia.classList.add('open');
+  btnSaveAsMp4.textContent = 'Save MP4 Video';
+  btnSaveAsMp4.disabled = false;
+  btnShowFolder.style.display = lastSavedFilePath ? 'inline-block' : 'none';
 }
 
-function closeModal() {
-  modalExport.classList.remove('open');
-  if (modalVideoPlayer.src) {
-    URL.revokeObjectURL(modalVideoPlayer.src);
-    modalVideoPlayer.src = '';
+function closeMediaModal() {
+  modalMedia.classList.remove('open');
+  if (mediaVideoPlayer.src) {
+    URL.revokeObjectURL(mediaVideoPlayer.src);
+    mediaVideoPlayer.src = '';
   }
 }
 
-btnCloseModal.addEventListener('click', closeModal);
-btnDiscard.addEventListener('click', closeModal);
+btnCloseMedia.addEventListener('click', closeMediaModal);
+btnNavMedia.addEventListener('click', () => {
+  if (currentRecordingResult) {
+    openMediaModal(currentRecordingResult);
+  } else {
+    alert('No recording made yet. Click "Start" to record your screen.');
+  }
+});
 
-// Save MP4
-btnSaveMp4.addEventListener('click', async () => {
+// Save MP4 handler
+btnSaveAsMp4.addEventListener('click', async () => {
   if (!currentRecordingResult || !window.electronAPI) return;
 
-  const defaultName = `ScreenRecording_${new Date().toISOString().replace(/[:.]/g, '-')}.mp4`;
+  const defaultName = `ScreenRecord_${new Date().toISOString().replace(/[:.]/g, '-')}.mp4`;
   const targetPath = await window.electronAPI.selectSavePath(defaultName);
 
   if (!targetPath) return;
 
-  btnSaveMp4.disabled = true;
-  btnSaveMp4.innerHTML = 'Converting & Saving...';
-  conversionBox.style.display = 'block';
-  conversionPercent.textContent = '0%';
-  conversionBar.style.width = '0%';
+  btnSaveAsMp4.textContent = 'Converting to MP4...';
+  btnSaveAsMp4.disabled = true;
 
   try {
-    const response = await window.electronAPI.convertToMp4({
+    const res = await window.electronAPI.convertToMp4({
       tempBuffer: currentRecordingResult.buffer,
       outputFilePath: targetPath,
-      fps: parseInt(selectFramerate.value, 10)
+      fps: parseInt(selectFps.value, 10)
     });
 
-    savedMp4Path = response.path;
-    btnSaveMp4.style.display = 'none';
-    btnOpenFolder.style.display = 'inline-flex';
-    conversionPercent.textContent = '100% (Done)';
-    conversionBar.style.width = '100%';
+    lastSavedFilePath = res.path;
+    btnSaveAsMp4.textContent = 'Saved Successfully!';
+    btnShowFolder.style.display = 'inline-block';
   } catch (err) {
-    console.error('Error saving MP4:', err);
-    alert('Error saving MP4 file: ' + err.message);
-  } finally {
-    btnSaveMp4.disabled = false;
-    btnSaveMp4.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-        <polyline points="17 21 17 13 7 13 7 21"/>
-        <polyline points="7 3 7 8 15 8"/>
-      </svg>
-      Save MP4 Video`;
+    console.error('Save failed:', err);
+    alert('Error saving MP4: ' + err.message);
+    btnSaveAsMp4.textContent = 'Save MP4 Video';
+    btnSaveAsMp4.disabled = false;
   }
 });
 
-btnOpenFolder.addEventListener('click', () => {
-  if (savedMp4Path && window.electronAPI) {
-    window.electronAPI.showInFolder(savedMp4Path);
+btnShowFolder.addEventListener('click', () => {
+  if (lastSavedFilePath && window.electronAPI) {
+    window.electronAPI.showInFolder(lastSavedFilePath);
   }
 });
 
-// Initialize on page load
-window.addEventListener('DOMContentLoaded', () => {
-  loadMicrophones();
-  refreshSources();
+// Settings Modal Handlers
+btnNavSetting.addEventListener('click', () => {
+  settingFolderInput.value = defaultOutputDir;
+  modalSettings.classList.add('open');
 });
+
+btnNavMore.addEventListener('click', () => {
+  settingFolderInput.value = defaultOutputDir;
+  modalSettings.classList.add('open');
+});
+
+btnCloseSettings.addEventListener('click', () => {
+  modalSettings.classList.remove('open');
+});
+
+btnChangeFolderModal.addEventListener('click', async () => {
+  if (window.electronAPI) {
+    const folder = await window.electronAPI.selectFolder();
+    if (folder) {
+      defaultOutputDir = folder;
+      infoFolderPath.textContent = folder;
+      settingFolderInput.value = folder;
+    }
+  }
+});
+
+btnBrowseFolder.addEventListener('click', async () => {
+  if (window.electronAPI) {
+    const folder = await window.electronAPI.selectFolder();
+    if (folder) {
+      defaultOutputDir = folder;
+      infoFolderPath.textContent = folder;
+      settingFolderInput.value = folder;
+    }
+  }
+});
+
+// Initialize Devices & Sources
+async function init() {
+  if (window.electronAPI) {
+    try {
+      const paths = await window.electronAPI.getUserPaths();
+      if (paths && paths.videosPath) {
+        defaultOutputDir = paths.videosPath;
+        infoFolderPath.textContent = paths.videosPath;
+      }
+      currentSources = await window.electronAPI.getSources();
+    } catch (e) {
+      console.warn('Init error:', e);
+    }
+  }
+
+  // Load mic devices
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const mics = devices.filter(d => d.kind === 'audioinput');
+    selectMicSource.innerHTML = '';
+
+    const def = document.createElement('option');
+    def.value = 'default';
+    def.textContent = 'Default Microphone';
+    selectMicSource.appendChild(def);
+
+    mics.forEach((mic, i) => {
+      const opt = document.createElement('option');
+      opt.value = mic.deviceId;
+      opt.textContent = mic.label || `Microphone ${i + 1}`;
+      selectMicSource.appendChild(opt);
+    });
+  } catch (e) {
+    console.warn('Mic enum error:', e);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', init);
