@@ -22,17 +22,23 @@ try {
   console.warn('FFmpeg static path setup warning:', err.message);
 }
 
+const { app, BrowserWindow, ipcMain, desktopCapturer, screen, dialog, shell, globalShortcut, Menu } = require('electron');
+
+// Disable default Electron menu bar
+Menu.setApplicationMenu(null);
+
 let mainWindow = null;
 let regionWindow = null;
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 860,
-    height: 390,
+    height: 440,
     minWidth: 780,
-    minHeight: 360,
+    minHeight: 380,
     title: 'Screen Record HD',
     backgroundColor: '#f4f7fb',
+    autoHideMenuBar: true,
     frame: true,
     resizable: true,
     webPreferences: {
