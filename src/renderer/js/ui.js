@@ -3,21 +3,27 @@ const engine = new ScreenRecorderEngine();
 
 // UI Elements
 const cardMode = document.getElementById('card-mode');
-const dropdownMode = document.getElementById('dropdown-mode');
 const labelMode = document.getElementById('label-mode');
-const dropdownRegionDesc = document.getElementById('dropdown-region-desc');
+const popoutModeOverlay = document.getElementById('popout-mode-overlay');
+const btnCloseModeDialog = document.getElementById('btn-close-mode-dialog');
+const btnPopoutDrawAction = document.getElementById('btn-popout-draw-action');
+const popoutRegionDesc = document.getElementById('popout-region-desc');
+const windowPickerBox = document.getElementById('window-picker-box');
+const selectWindowPicker = document.getElementById('select-window-picker');
 
 const cardAudio = document.getElementById('card-audio');
-const dropdownAudio = document.getElementById('dropdown-audio');
 const labelAudio = document.getElementById('label-audio');
+const popoutAudioOverlay = document.getElementById('popout-audio-overlay');
+const btnCloseAudioDialog = document.getElementById('btn-close-audio-dialog');
 const checkSystemAudio = document.getElementById('check-system-audio');
 const checkMic = document.getElementById('check-mic');
 const selectMicSource = document.getElementById('select-mic-source');
 const cardLedMeter = document.getElementById('card-led-meter');
 
 const cardFormat = document.getElementById('card-format');
-const dropdownFormat = document.getElementById('dropdown-format');
 const labelFormat = document.getElementById('label-format');
+const popoutFormatOverlay = document.getElementById('popout-format-overlay');
+const btnCloseFormatDialog = document.getElementById('btn-close-format-dialog');
 const selectFps = document.getElementById('select-fps');
 const selectQuality = document.getElementById('select-quality');
 
@@ -53,8 +59,6 @@ const btnSaveAsMp4 = document.getElementById('btn-save-as-mp4');
 const btnShowFolder = document.getElementById('btn-show-folder');
 
 let currentMode = 'fullscreen'; // 'fullscreen' | 'region' | 'window'
-let currentDisplayId = null;
-let currentWindowId = null;
 let currentSources = [];
 let defaultOutputDir = '';
 let currentRecordingResult = null;
@@ -72,107 +76,83 @@ function formatTime(ms) {
   return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
-// Close all open dropdowns
-function closeAllDropdowns() {
-  dropdownMode.classList.remove('show');
-  dropdownAudio.classList.remove('show');
-  dropdownFormat.classList.remove('show');
+// Dialog Open / Close Helpers
+function closeAllPopouts() {
+  popoutModeOverlay.classList.remove('open');
+  popoutAudioOverlay.classList.remove('open');
+  popoutFormatOverlay.classList.remove('open');
 }
 
-// Dropdown Toggles
-cardMode.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const isOpen = dropdownMode.classList.contains('show');
-  closeAllDropdowns();
-  if (!isOpen) dropdownMode.classList.add('show');
+cardMode.addEventListener('click', () => {
+  closeAllPopouts();
+  popoutModeOverlay.classList.add('open');
 });
 
-cardAudio.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const isOpen = dropdownAudio.classList.contains('show');
-  closeAllDropdowns();
-  if (!isOpen) dropdownAudio.classList.add('show');
+cardAudio.addEventListener('click', () => {
+  closeAllPopouts();
+  popoutAudioOverlay.classList.add('open');
 });
 
-cardFormat.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const isOpen = dropdownFormat.classList.contains('show');
-  closeAllDropdowns();
-  if (!isOpen) dropdownFormat.classList.add('show');
+cardFormat.addEventListener('click', () => {
+  closeAllPopouts();
+  popoutFormatOverlay.classList.add('open');
 });
 
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.control-card-wrapper')) {
-    closeAllDropdowns();
-  }
-});
+btnCloseModeDialog.addEventListener('click', () => popoutModeOverlay.classList.remove('open'));
+btnCloseAudioDialog.addEventListener('click', () => popoutAudioOverlay.classList.remove('open'));
+btnCloseFormatDialog.addEventListener('click', () => popoutFormatOverlay.classList.remove('open'));
 
-const btnCloseModePopout = document.getElementById('btn-close-mode-popout');
-const btnDrawAreaTrigger = document.getElementById('btn-draw-area-trigger');
-const windowSelectContainer = document.getElementById('window-select-container');
-const selectWindowSource = document.getElementById('select-window-source');
-
-if (btnCloseModePopout) {
-  btnCloseModePopout.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdownMode.classList.remove('show');
+// Close popout on backdrop click
+[popoutModeOverlay, popoutAudioOverlay, popoutFormatOverlay].forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.classList.remove('open');
+    }
   });
-}
+});
 
-if (btnDrawAreaTrigger) {
-  btnDrawAreaTrigger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    currentMode = 'region';
-    labelMode.textContent = 'Custom';
-    dropdownMode.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
-    const regItem = dropdownMode.querySelector('[data-mode="region"]');
-    if (regItem) regItem.classList.add('active');
-    closeAllDropdowns();
-    openRegionSelector();
-  });
-}
+// Mode Selection Cards
+const modeChoiceCards = document.querySelectorAll('.mode-choice-card');
+modeChoiceCards.forEach(card => {
+  card.addEventListener('click', (e) => {
+    // If clicked the draw area button, handle separately
+    if (e.target === btnPopoutDrawAction) return;
 
-// Mode Selection Handlers
-dropdownMode.querySelectorAll('.dropdown-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const mode = item.dataset.mode;
-    dropdownMode.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
-    item.classList.add('active');
-
+    const mode = card.dataset.mode;
+    modeChoiceCards.forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
     currentMode = mode;
+
     if (mode === 'fullscreen') {
       labelMode.textContent = 'Full';
       engine.clearRegion();
-      windowSelectContainer.style.display = 'none';
-      closeAllDropdowns();
+      windowPickerBox.style.display = 'none';
+      popoutModeOverlay.classList.remove('open');
     } else if (mode === 'region') {
       labelMode.textContent = 'Custom';
-      windowSelectContainer.style.display = 'none';
-      closeAllDropdowns();
+      windowPickerBox.style.display = 'none';
+      popoutModeOverlay.classList.remove('open');
       openRegionSelector();
     } else if (mode === 'window') {
       labelMode.textContent = 'Window';
       engine.clearRegion();
-      windowSelectContainer.style.display = 'block';
+      windowPickerBox.style.display = 'flex';
       populateWindowSources();
     }
   });
 });
 
-async function populateWindowSources() {
-  if (window.electronAPI) {
-    try {
-      currentSources = await window.electronAPI.getSources();
-      const windows = currentSources.filter(s => s.id.startsWith('window:'));
-      selectWindowSource.innerHTML = '';
-      windows.forEach(w => {
-        const opt = document.createElement('option');
-        opt.value = w.id;
-        opt.textContent = w.name;
-        selectWindowSource.appendChild(opt);
-      });
-    } catch (e) {}
-  }
+if (btnPopoutDrawAction) {
+  btnPopoutDrawAction.addEventListener('click', (e) => {
+    e.stopPropagation();
+    currentMode = 'region';
+    labelMode.textContent = 'Custom';
+    modeChoiceCards.forEach(c => c.classList.remove('active'));
+    const regCard = document.querySelector('.mode-choice-card[data-mode="region"]');
+    if (regCard) regCard.classList.add('active');
+    popoutModeOverlay.classList.remove('open');
+    openRegionSelector();
+  });
 }
 
 function openRegionSelector() {
@@ -182,12 +162,28 @@ function openRegionSelector() {
   }
 }
 
+async function populateWindowSources() {
+  if (window.electronAPI) {
+    try {
+      currentSources = await window.electronAPI.getSources();
+      const windows = currentSources.filter(s => s.id.startsWith('window:'));
+      selectWindowPicker.innerHTML = '';
+      windows.forEach(w => {
+        const opt = document.createElement('option');
+        opt.value = w.id;
+        opt.textContent = w.name;
+        selectWindowPicker.appendChild(opt);
+      });
+    } catch (e) {}
+  }
+}
+
 if (window.electronAPI) {
   window.electronAPI.onRegionSelected((region) => {
     if (region) {
       engine.setRegion(region);
       labelMode.textContent = 'Custom';
-      dropdownRegionDesc.textContent = `${region.width} × ${region.height} px`;
+      popoutRegionDesc.textContent = `${region.width} x ${region.height} px`;
     }
   });
 
@@ -200,7 +196,7 @@ if (window.electronAPI) {
   });
 }
 
-// Audio Handlers
+// Audio Configuration
 checkSystemAudio.addEventListener('change', () => {
   engine.setOptions({ includeSystemAudio: checkSystemAudio.checked });
   updateAudioCardLabel();
@@ -227,7 +223,7 @@ selectMicSource.addEventListener('change', () => {
   engine.setOptions({ micDeviceId: selectMicSource.value });
 });
 
-// Format Handlers
+// Format Configuration
 selectFps.addEventListener('change', () => {
   engine.setOptions({ fps: selectFps.value });
 });
@@ -236,7 +232,7 @@ selectQuality.addEventListener('change', () => {
   engine.setOptions({ videoBitrate: selectQuality.value });
 });
 
-// Slider Mute Toggles
+// Slider Controls
 let prevSpeakerVal = 100;
 btnToggleSpeakerMute.addEventListener('click', () => {
   if (sliderSpeaker.value > 0) {
@@ -277,7 +273,7 @@ sliderMic.addEventListener('input', () => {
   updateAudioCardLabel();
 });
 
-// LED VU Meter Update Callback
+// Audio VU Meter Callback
 engine.onAudioLevel = (level) => {
   const activeCount = Math.round((level / 100) * ledSegments.length);
   ledSegments.forEach((seg, idx) => {
@@ -294,12 +290,12 @@ engine.onAudioLevel = (level) => {
   });
 };
 
-// Engine Time & State Sync
+// Engine Time Sync
 engine.onTick = (ms) => {
   const formatted = formatTime(ms);
   footerTimer.textContent = formatted;
   if (engine.state === 'recording') {
-    startBtnText.textContent = formatted.slice(3); // Shows mm:ss in circle
+    startBtnText.textContent = formatted.slice(3);
   }
 };
 
@@ -307,11 +303,11 @@ engine.onStateChange = (state) => {
   if (state === 'recording') {
     btnMainRecord.className = 'start-circle-btn recording';
     footerStatus.style.display = 'flex';
-    btnFooterPause.textContent = '⏸';
+    btnFooterPause.textContent = 'Pause';
   } else if (state === 'paused') {
     btnMainRecord.className = 'start-circle-btn paused';
     startBtnText.textContent = 'Pause';
-    btnFooterPause.textContent = '▶';
+    btnFooterPause.textContent = 'Resume';
   } else {
     btnMainRecord.className = 'start-circle-btn';
     startBtnText.textContent = 'Start';
@@ -347,7 +343,12 @@ async function startRecording() {
   try {
     let source = currentSources.find(s => s.id.startsWith('screen:'));
     if (currentMode === 'window') {
-      source = currentSources.find(s => s.id.startsWith('window:')) || source;
+      const selectedWinId = selectWindowPicker.value;
+      if (selectedWinId) {
+        source = currentSources.find(s => s.id === selectedWinId) || source;
+      } else {
+        source = currentSources.find(s => s.id.startsWith('window:')) || source;
+      }
     }
 
     if (!source && currentSources.length > 0) {
@@ -355,7 +356,7 @@ async function startRecording() {
     }
 
     if (!source) {
-      alert('No display source found.');
+      alert('No display or window source detected.');
       return;
     }
 
@@ -410,7 +411,7 @@ btnNavMedia.addEventListener('click', () => {
   if (currentRecordingResult) {
     openMediaModal(currentRecordingResult);
   } else {
-    alert('No recording made yet. Click "Start" to record your screen.');
+    alert('No recording found. Click "Start" to record your screen.');
   }
 });
 
