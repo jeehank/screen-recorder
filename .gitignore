@@ -1,0 +1,27 @@
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Electron build outputs & binaries
+dist/
+build/
+out/
+*.exe
+*.msi
+*.zip
+
+# Temporary files
+*.tmp
+*.log
+temp/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# IDE configuration
+.vscode/
+.idea/
