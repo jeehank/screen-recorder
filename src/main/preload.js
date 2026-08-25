@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openRegionSelector: (displayId) => ipcRenderer.invoke('open-region-selector', displayId),
   closeRegionSelector: () => ipcRenderer.invoke('close-region-selector'),
   sendRegionSelected: (region) => ipcRenderer.send('region-selected', region),
+  getUserPaths: () => ipcRenderer.invoke('get-user-paths'),
+  selectFolder: () => ipcRenderer.invoke('select-folder'),
   selectSavePath: (defaultName) => ipcRenderer.invoke('select-save-path', defaultName),
   convertToMp4: (data) => ipcRenderer.invoke('convert-to-mp4', data),
   showInFolder: (filePath) => ipcRenderer.invoke('show-in-folder', filePath),
