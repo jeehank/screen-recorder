@@ -5,6 +5,7 @@
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
+    "pack": "electron-builder --dir",
     "build": "electron-builder --win",
     "dist": "electron-builder --win portable"
   },
