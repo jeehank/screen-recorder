@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Region Selector</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body, html {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .hud {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: #f8fafc;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
+      z-index: 1000;
+    }
+    .hud-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+    .hud-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 8px #38bdf8;
+    }
+    .hud-divider {
+      width: 1px;
+      height: 16px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .hud-controls {
+      display: flex;
+      gap: 8px;
+    }
+    .hud-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .hud-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    .hud-btn.confirm {
+      background: #2563eb;
+      border-color: #3b82f6;
+      color: #fff;
+    }
+    .hud-btn.confirm:hover {
+      background: #1d4ed8;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+    }
+    .hud-btn.cancel {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+    .hud-btn.cancel:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+    .dimension-badge {
+      position: absolute;
+      background: rgba(15, 23, 42, 0.9);
+      color: #38bdf8;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+      font-weight: 600;
+      pointer-events: none;
+      display: none;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      z-index: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="hud-title">
+      <span class="hud-dot"></span>
+      <span>Select Screen Region</span>
+    </div>
+    <div class="hud-divider"></div>
+    <span>Drag to draw area • Esc to cancel</span>
+    <div class="hud-controls">
+      <button id="btn-full" class="hud-btn">Full Screen</button>
+      <button id="btn-1080p" class="hud-btn">1080p</button>
+      <button id="btn-720p" class="hud-btn">720p</button>
+      <button id="btn-confirm" class="hud-btn confirm">Confirm (Enter)</button>
+      <button id="btn-cancel" class="hud-btn cancel">Cancel (Esc)</button>
+    </div>
+  </div>
+
+  <div id="dimension-badge" class="dimension-badge">0 x 0</div>
+
+  <div id="canvas-container">
+    <canvas id="overlay-canvas"></canvas>
+  </div>
+
+  <script src="js/region-overlay.js"></script>
+</body>
+</html>

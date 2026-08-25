@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screen Recorder Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9" stroke="url(#gradient-brand)"/>
+            <circle cx="12" cy="12" r="3.5" fill="#ef4444"/>
+            <defs>
+              <linearGradient id="gradient-brand" x1="0" y1="0" x2="24" y2="24">
+                <stop offset="0%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#818cf8"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Screen Recorder <span class="badge-pro">PRO</span></h1>
+          <span class="brand-sub">Windows Desktop Edition</span>
+        </div>
+      </div>
+
+      <div class="header-status">
+        <div id="status-pill" class="status-pill ready">
+          <span class="status-dot"></span>
+          <span id="status-text">READY</span>
+        </div>
+      </div>
+
+      <div class="header-shortcuts">
+        <span class="shortcut-tag"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> Record</span>
+        <span class="shortcut-tag"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> Pause</span>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-main">
+      <!-- Left / Studio Area -->
+      <section class="studio-section">
+        <!-- Capture Mode Switcher -->
+        <div class="mode-selector">
+          <button id="mode-fullscreen" class="mode-btn active" data-mode="fullscreen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            <div class="mode-info">
+              <span class="mode-title">Full Screen</span>
+              <span class="mode-desc">Capture entire display</span>
+            </div>
+          </button>
+
+          <button id="mode-region" class="mode-btn" data-mode="region">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-dasharray="3 3" d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
+              <rect x="8" y="8" width="8" height="8" rx="1"/>
+            </svg>
+            <div class="mode-info">
+              <span class="mode-title">Custom Region</span>
+              <span class="mode-desc" id="region-desc">Select screen area</span>
+            </div>
+          </button>
+
+          <button id="mode-window" class="mode-btn" data-mode="window">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <line x1="3" y1="9" x2="21" y2="9"/>
+              <circle cx="6" cy="6" r="1" fill="currentColor"/>
+              <circle cx="9" cy="6" r="1" fill="currentColor"/>
+            </svg>
+            <div class="mode-info">
+              <span class="mode-title">App Window</span>
+              <span class="mode-desc">Record specific window</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Source Selector Dropdown (When multiple screens or windows available) -->
+        <div class="source-bar" id="source-bar">
+          <div class="source-select-group">
+            <label for="source-select" id="source-label">Display Source:</label>
+            <select id="source-select" class="custom-select"></select>
+          </div>
+          <button id="btn-select-region-overlay" class="btn-secondary" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/>
+            </svg>
+            Draw / Select Area
+          </button>
+        </div>
+
+        <!-- Video Preview Viewport -->
+        <div class="viewport-card">
+          <div class="viewport-wrapper">
+            <video id="preview-video" autoplay muted playsinline></video>
+            <canvas id="crop-canvas" style="display: none;"></canvas>
+            
+            <div id="viewport-empty" class="viewport-empty">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="2" y="3" width="20" height="14" rx="2"/>
+                  <circle cx="12" cy="10" r="3"/>
+                  <path d="M7 21h10M12 17v4"/>
+                </svg>
+              </div>
+              <p>Select a mode above to initialize preview</p>
+            </div>
+
+            <!-- Overlay badges -->
+            <div class="viewport-badge top-left" id="badge-resolution">
+              <span id="preview-resolution-text">-- x --</span>
+            </div>
+            <div class="viewport-badge top-right" id="badge-fps">
+              <span id="preview-fps-text">60 FPS</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Controls Toolbar -->
+        <div class="controls-card">
+          <div class="timer-wrapper">
+            <span class="timer-dot" id="rec-dot"></span>
+            <span id="recording-timer" class="timer-text">00:00:00</span>
+          </div>
+
+          <div class="action-buttons">
+            <!-- Record Button -->
+            <button id="btn-record" class="btn-action btn-record" title="Start Recording">
+              <span class="btn-action-icon"></span>
+              <span class="btn-action-text" id="btn-record-text">Start Recording</span>
+            </button>
+
+            <!-- Pause / Resume Button -->
+            <button id="btn-pause" class="btn-action btn-pause" disabled title="Pause / Resume Recording">
+              <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="4" width="4" height="16" rx="1"/>
+                <rect x="14" y="4" width="4" height="16" rx="1"/>
+              </svg>
+              <svg id="icon-resume" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <span id="btn-pause-text">Pause</span>
+            </button>
+
+            <!-- Stop Button -->
+            <button id="btn-stop" class="btn-action btn-stop" disabled title="Stop and Save">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <rect x="5" y="5" width="14" height="14" rx="2"/>
+              </svg>
+              <span>Stop & Save</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Sidebar (Audio & Settings) -->
+      <aside class="sidebar-section">
+        <!-- Audio Input Settings -->
+        <div class="panel-card">
+          <h2 class="panel-heading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
+            </svg>
+            Audio Setup
+          </h2>
+
+          <div class="setting-item">
+            <div class="setting-header">
+              <div class="setting-label">
+                <span class="title">Microphone</span>
+                <span class="subtitle">Record your voice</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-mic" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-body" id="mic-settings-body">
+              <select id="select-mic-device" class="custom-select"></select>
+              <!-- Live Mic VU Meter -->
+              <div class="vu-meter-container">
+                <div class="vu-labels">
+                  <span>Level</span>
+                  <span id="vu-db-text">-inf dB</span>
+                </div>
+                <div class="vu-bar-track">
+                  <div id="vu-bar-fill" class="vu-bar-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-header">
+              <div class="setting-label">
+                <span class="title">System Audio</span>
+                <span class="subtitle">Desktop / app sound</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-system-audio" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Quality Settings -->
+        <div class="panel-card">
+          <h2 class="panel-heading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            Recording Quality
+          </h2>
+
+          <div class="setting-field">
+            <label for="select-framerate">Frame Rate (FPS)</label>
+            <select id="select-framerate" class="custom-select">
+              <option value="60" selected>60 FPS (Ultra Smooth)</option>
+              <option value="30">30 FPS (Standard)</option>
+              <option value="24">24 FPS (Cinematic)</option>
+            </select>
+          </div>
+
+          <div class="setting-field">
+            <label for="select-bitrate">Video Bitrate</label>
+            <select id="select-bitrate" class="custom-select">
+              <option value="12000000">12 Mbps (High Quality 1080p/2K)</option>
+              <option value="8000000" selected>8 Mbps (Recommended)</option>
+              <option value="4000000">4 Mbps (Compact File Size)</option>
+            </select>
+          </div>
+
+          <div class="setting-field">
+            <label>Output Format</label>
+            <div class="format-badge-box">
+              <span class="format-badge">MP4 (H.264 / AAC)</span>
+              <span class="format-hint">Universal playback compatible</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Post-Recording Export / Review Modal -->
+    <div id="modal-export" class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" width="22" height="22">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 12l2.5 2.5L16 9"/>
+            </svg>
+            <h3>Recording Completed</h3>
+          </div>
+          <button id="btn-close-modal" class="modal-close-btn">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="video-preview-box">
+            <video id="modal-video-player" controls></video>
+          </div>
+
+          <div class="recording-meta-grid">
+            <div class="meta-card">
+              <span class="meta-title">Duration</span>
+              <span id="meta-duration" class="meta-value">00:00:00</span>
+            </div>
+            <div class="meta-card">
+              <span class="meta-title">Format</span>
+              <span class="meta-value">MP4 Video</span>
+            </div>
+            <div class="meta-card">
+              <span class="meta-title">Resolution</span>
+              <span id="meta-resolution" class="meta-value">1920 × 1080</span>
+            </div>
+          </div>
+
+          <!-- Conversion Progress Bar (shown when remuxing/encoding) -->
+          <div id="conversion-box" class="conversion-box" style="display: none;">
+            <div class="conversion-header">
+              <span id="conversion-text">Processing MP4 file...</span>
+              <span id="conversion-percent">0%</span>
+            </div>
+            <div class="conversion-track">
+              <div id="conversion-bar" class="conversion-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btn-discard" class="btn-modal-secondary">Discard</button>
+          <div class="modal-actions-right">
+            <button id="btn-save-mp4" class="btn-modal-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              Save MP4 Video
+            </button>
+            <button id="btn-open-folder" class="btn-modal-accent" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+              Show in Explorer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/recorder.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
