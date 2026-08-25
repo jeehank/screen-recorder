@@ -31,10 +31,14 @@
       "output": "dist"
     },
     "win": {
+      "signAndEditExecutable": false,
       "target": [
         "portable",
-        "nsis"
+        "dir"
       ]
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable.exe"
     },
     "extraResources": [
       {
