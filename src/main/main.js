@@ -27,13 +27,14 @@ let regionWindow = null;
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
-    width: 1060,
-    height: 720,
-    minWidth: 860,
-    minHeight: 620,
-    title: 'Screen Recorder Pro',
-    backgroundColor: '#0d0f17',
+    width: 820,
+    height: 340,
+    minWidth: 760,
+    minHeight: 300,
+    title: 'Screen Record HD',
+    backgroundColor: '#f3f6fa',
     frame: true,
+    resizable: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -188,6 +189,21 @@ ipcMain.on('region-selected', (event, region) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('on-region-selected', region);
   }
+});
+
+ipcMain.handle('get-user-paths', () => {
+  const videosPath = app.getPath('videos') || path.join(os.homedir(), 'Videos');
+  return {
+    videosPath,
+    homedir: os.homedir()
+  };
+});
+
+ipcMain.handle('select-folder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory']
+  });
+  return result.canceled ? null : result.filePaths[0];
 });
 
 ipcMain.handle('select-save-path', async (event, defaultName = 'recording.mp4') => {
