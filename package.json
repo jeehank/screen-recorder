@@ -1,0 +1,46 @@
+{
+  "name": "screen-recorder-pro",
+  "version": "1.0.0",
+  "description": "Professional Windows Screen Recorder with Region Capture, Pause/Resume, and MP4 Export",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "dist": "electron-builder --win portable"
+  },
+  "keywords": [
+    "screen-recorder",
+    "electron",
+    "mp4",
+    "video-capture"
+  ],
+  "author": "Antigravity",
+  "license": "MIT",
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "fluent-ffmpeg": "^2.1.3"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.screenrecorder.pro",
+    "productName": "ScreenRecorderPro",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
+    "extraResources": [
+      {
+        "from": "node_modules/ffmpeg-static/ffmpeg.exe",
+        "to": "bin/ffmpeg.exe"
+      }
+    ]
+  }
+}
