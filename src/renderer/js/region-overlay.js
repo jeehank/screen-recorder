@@ -55,7 +55,7 @@ function draw() {
     ctx.clearRect(rect.x, rect.y, rect.w, rect.h);
 
     // Stroke border
-    ctx.strokeStyle = '#38bdf8';
+    ctx.strokeStyle = '#ff5240';
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 4]);
     ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
@@ -63,7 +63,7 @@ function draw() {
 
     // Draw corner handles
     const handleSize = 8;
-    ctx.fillStyle = '#38bdf8';
+    ctx.fillStyle = '#ff5240';
     
     // 4 corners
     ctx.fillRect(rect.x - handleSize/2, rect.y - handleSize/2, handleSize, handleSize);
