@@ -234,8 +234,8 @@ ipcMain.handle('convert-to-mp4', async (event, { tempBuffer, outputFilePath, fps
       ffmpeg(tempWebmPath)
         .outputOptions([
           '-c:v libx264',
-          '-preset veryfast',
-          '-crf 22',
+          '-preset ultrafast',
+          '-crf 18',
           '-pix_fmt yuv420p',
           '-c:a aac',
           '-b:a 192k',
