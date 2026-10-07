@@ -5,7 +5,9 @@ const proc = require('child_process');
 const electron = require('./');
 
 const child = proc.spawn(electron, process.argv.slice(2), { stdio: 'inherit', windowsHide: false });
+let childClosed = false;
 child.on('close', function (code, signal) {
+  childClosed = true;
   if (code === null) {
     console.error(electron, 'exited with signal', signal);
     process.exit(1);
@@ -14,8 +16,8 @@ child.on('close', function (code, signal) {
 });
 
 const handleTerminationSignal = function (signal) {
-  process.on(signal, function signalHandler () {
-    if (!child.killed) {
+  process.on(signal, function signalHandler() {
+    if (!childClosed) {
       child.kill(signal);
     }
   });
@@ -23,3 +25,4 @@ const handleTerminationSignal = function (signal) {
 
 handleTerminationSignal('SIGINT');
 handleTerminationSignal('SIGTERM');
+handleTerminationSignal('SIGUSR2');

@@ -152,9 +152,13 @@ class ScreenRecorderEngine {
   }
 
   startRegionCropping(rawStream, bounds) {
+    // Ensure even dimensions for codec compatibility (many codecs fail on odd dimensions)
+    const width = bounds.width % 2 === 0 ? bounds.width : bounds.width - 1;
+    const height = bounds.height % 2 === 0 ? bounds.height : bounds.height - 1;
+
     this.cropCanvas = document.createElement('canvas');
-    this.cropCanvas.width = bounds.width;
-    this.cropCanvas.height = bounds.height;
+    this.cropCanvas.width = width;
+    this.cropCanvas.height = height;
     this.cropCtx = this.cropCanvas.getContext('2d', { alpha: false });
 
     this.cropVideo = document.createElement('video');
@@ -163,7 +167,7 @@ class ScreenRecorderEngine {
     this.cropVideo.play();
 
     const drawFrame = () => {
-      if (this.state === 'idle') return;
+      if (!this.cropVideo) return;
 
       if (this.cropVideo.readyState >= 2) {
         // Calculate scaling from video original size to screen width
@@ -180,7 +184,7 @@ class ScreenRecorderEngine {
         this.cropCtx.drawImage(
           this.cropVideo,
           srcX, srcY, srcW, srcH,
-          0, 0, bounds.width, bounds.height
+          0, 0, width, height
         );
       }
 
