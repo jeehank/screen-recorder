@@ -1,5 +1,5 @@
 {
-  "name": "screen-recorder-pro",
+  "name": "j-recorder",
   "version": "1.0.0",
   "description": "Professional Windows Screen Recorder with Region Capture, Pause/Resume, and MP4 Export",
   "main": "src/main/main.js",
@@ -26,8 +26,8 @@
     "electron-builder": "^26.15.3"
   },
   "build": {
-    "appId": "com.screenrecorder.pro",
-    "productName": "ScreenRecorderPro",
+    "appId": "com.jrecorder.app",
+    "productName": "J-Recorder",
     "directories": {
       "output": "dist"
     },
