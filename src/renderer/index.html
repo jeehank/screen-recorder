@@ -312,18 +312,15 @@
 
           <div class="format-field-row">
             <label>Frame Rate:</label>
-            <select id="select-fps" class="dropdown-select">
-              <option value="60" selected>60 FPS (Smooth)</option>
-              <option value="30">30 FPS (Standard)</option>
-              <option value="24">24 FPS (Cinematic)</option>
-            </select>
+            <input type="number" id="select-fps" class="dropdown-select" min="29" max="60" value="60">
           </div>
 
           <div class="format-field-row">
             <label>Bitrate Quality:</label>
             <select id="select-quality" class="dropdown-select">
+              <option value="50000000" selected>50 Mbps (Max Quality)</option>
               <option value="12000000">12 Mbps (High Quality)</option>
-              <option value="8000000" selected>8 Mbps (Standard)</option>
+              <option value="8000000">8 Mbps (Standard)</option>
               <option value="4000000">4 Mbps (Compact Size)</option>
             </select>
           </div>
